@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 
 	_ "github.com/lib/pq"
+	"github.com/starboy011/Family-Tree-Backend/internal/db"
 )
 
 // NameResult represents the structure of data to return as JSON
@@ -19,14 +19,12 @@ type NameResult struct {
 
 // GetAllName fetches ID and Name columns from the mulvansham table and returns as JSON
 func GetAllName(w http.ResponseWriter, r *http.Request) {
-	// PostgreSQL connection string
-	connStr := "host=localhost port=5432 user=postgres password=Smmarp31461013 dbname=mulvansham sslmode=disable"
 
 	// Open connection to the database
-	db, err := sql.Open("postgres", connStr)
+	db, err := db.InitDb(w, r)
 	if err != nil {
-		http.Error(w, "Error opening database connection", http.StatusInternalServerError)
-		log.Fatalf("Error opening database connection: %v", err)
+		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
+		log.Fatalf("Error executing query: %v", err)
 		return
 	}
 	defer db.Close()
