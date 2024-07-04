@@ -30,7 +30,7 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	// Prepare query statement
-	query := `SELECT "ID", "Name" FROM mulvansham`
+	query := `SELECT "ID", "Name" FROM mulvansham WHERE "Relationship" != 3`
 
 	// Execute query
 	rows, err := db.Query(query)
