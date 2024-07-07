@@ -11,8 +11,9 @@ import (
 
 // NameResult represents the structure of data to return as JSON
 type NameResult struct {
-	ID   int `json:"id"`
-	Data struct {
+	ID       int `json:"id"`
+	ParentID int `json:"parentid"`
+	Data     struct {
 		Name string `json:"name"`
 	} `json:"data"`
 }
