@@ -10,7 +10,8 @@ import (
 
 func main() {
 	// Define HTTP route for /get-all-names endpoint
-	http.HandleFunc("/get-all-names", handler.GetAllName)
+	http.HandleFunc("/names", handler.GetAllName)
+	http.HandleFunc("/tree", handler.GetFamilyTreeData)
 
 	// Start HTTP server on port 8080
 	fmt.Println("Starting server on port 8080...")
