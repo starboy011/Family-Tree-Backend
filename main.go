@@ -5,15 +5,20 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/starboy011/Family-Tree-Backend/internal/handler"
 )
 
 func main() {
-	// Define HTTP route for /get-all-names endpoint
-	http.HandleFunc("/names", handler.GetAllName)
-	http.HandleFunc("/tree", handler.GetFamilyTreeData)
+	// Create a new router
+	r := mux.NewRouter()
+
+	// Define HTTP routes
+	r.HandleFunc("/names", handler.GetAllName).Methods("GET")
+	r.HandleFunc("/tree", handler.GetFamilyTreeData).Methods("GET")
+	r.HandleFunc("/tree/{id}", handler.GetTreeDataFromId).Methods("GET")
 
 	// Start HTTP server on port 8080
 	fmt.Println("Starting server on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
