@@ -4,24 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
 )
 
-type TreeResult struct {
-	ID       int    `json:"id"`
-	ParentID int    `json:"parentid"`
-	Name     string `json:"name"`
-}
-
-type TreeNode struct {
-	ID       int        `json:"id"`
-	Label    string     `json:"label"`
-	Children []TreeNode `json:"children,omitempty"`
-}
-
 // ConvertToTree converts the flat list of nodes into a hierarchical structure
-func ConvertToTree(nodes []TreeResult) TreeNode {
+func ConvertToTreefromID(nodes []TreeResult) TreeNode {
 	nodeMap := make(map[int][]TreeResult)
 	var root TreeResult
 
@@ -35,22 +25,49 @@ func ConvertToTree(nodes []TreeResult) TreeNode {
 	}
 
 	// Recursively build the tree
-	return buildTree(root, nodeMap)
+	return buildTreeFromId(root, nodeMap)
 }
 
 // buildTree recursively constructs the tree from the node map
-func buildTree(current TreeResult, nodeMap map[int][]TreeResult) TreeNode {
+func buildTreeFromId(current TreeResult, nodeMap map[int][]TreeResult) TreeNode {
 	treeNode := TreeNode{
 		ID:    current.ID,
 		Label: current.Name,
 	}
 	for _, child := range nodeMap[current.ID] {
-		treeNode.Children = append(treeNode.Children, buildTree(child, nodeMap))
+		treeNode.Children = append(treeNode.Children, buildTreeFromId(child, nodeMap))
 	}
 	return treeNode
 }
 
-func GetFamilyTreeData(w http.ResponseWriter, r *http.Request) {
+// ExtractSubtreeWithPath finds the subtree rooted at the specified node ID and ensures the path from the root to the specified node is included
+func ExtractSubtreeWithPath(root TreeNode, id int) *TreeNode {
+	if root.ID == id {
+		return &root
+	}
+	for _, child := range root.Children {
+		subtree := ExtractSubtreeWithPath(child, id)
+		if subtree != nil {
+			// Return the current root with the subtree attached to it
+			return &TreeNode{
+				ID:       root.ID,
+				Label:    root.Label,
+				Children: []TreeNode{*subtree},
+			}
+		}
+	}
+	return nil
+}
+
+func GetTreeDataFromId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
@@ -89,10 +106,17 @@ func GetFamilyTreeData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert results slice to hierarchical tree structure
-	tree := ConvertToTree(results)
+	tree := ConvertToTreefromID(results)
 
-	// Convert tree to JSON
-	jsonData, err := json.Marshal(tree)
+	// Extract the subtree rooted at the specified node, including the path from root to the node
+	subtree := ExtractSubtreeWithPath(tree, id)
+	if subtree == nil {
+		http.Error(w, "Node not found", http.StatusNotFound)
+		return
+	}
+
+	// Convert subtree to JSON
+	jsonData, err := json.Marshal(subtree)
 	if err != nil {
 		http.Error(w, "Error marshalling JSON", http.StatusInternalServerError)
 		log.Fatalf("Error marshalling JSON: %v", err)
