@@ -11,9 +11,9 @@ import (
 
 // NameResult represents the structure of data to return as JSON
 type NameResult struct {
-	ID       int `json:"id"`
-	ParentID int `json:"parentid"`
-	Data     struct {
+	ID         int `json:"id"`
+	Generation int `json:"generation"`
+	Data       struct {
 		Name string `json:"name"`
 	} `json:"data"`
 }
@@ -31,7 +31,7 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	// Prepare query statement
-	query := `SELECT "ID", "Name" FROM mulvansham WHERE "Relationship" != 3`
+	query := `SELECT "ID", "Name","Generation" FROM mulvansham WHERE "Relationship" = 1`
 
 	// Execute query
 	rows, err := db.Query(query)
@@ -48,7 +48,7 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 	// Iterate through rows and populate results
 	for rows.Next() {
 		var result NameResult
-		if err := rows.Scan(&result.ID, &result.Data.Name); err != nil {
+		if err := rows.Scan(&result.ID, &result.Data.Name, &result.Generation); err != nil {
 			http.Error(w, "Error scanning row", http.StatusInternalServerError)
 			log.Fatalf("Error scanning row: %v", err)
 			return
