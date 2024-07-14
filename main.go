@@ -15,6 +15,7 @@ func main() {
 
 	// Define HTTP routes
 	r.HandleFunc("/names", handler.GetAllName).Methods("GET")
+	r.HandleFunc("/keyNames", handler.GetKeyContactName).Methods("GET")
 	r.HandleFunc("/tree", handler.GetFamilyTreeData).Methods("GET")
 	r.HandleFunc("/tree/{id}", handler.GetTreeDataFromId).Methods("GET")
 
