@@ -4,15 +4,23 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
 )
+
+// ByName implements sort.Interface for []NameResult based on the Name field.
+type ByName []NameResult
+
+func (a ByName) Len() int           { return len(a) }
+func (a ByName) Less(i, j int) bool { return a[i].Data.Name < a[j].Data.Name }
+func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
-		log.Fatalf("Error executing query: %v", err)
+		log.Fatalf("Error connecting to db: %v", err)
 		return
 	}
 	defer db.Close()
@@ -49,6 +57,9 @@ func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Error iterating through rows: %v", err)
 		return
 	}
+
+	// Sort results by Name
+	sort.Sort(ByName(results))
 
 	// Convert results slice to JSON
 	jsonData, err := json.Marshal(results)
