@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"sort"
 
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
@@ -17,6 +20,8 @@ func (a ByName) Less(i, j int) bool { return a[i].Data.Name < a[j].Data.Name }
 func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
+	imageDir := "images"
+	imageName := "248.jpeg"
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
@@ -48,6 +53,18 @@ func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error scanning row: %v", err)
 			return
 		}
+		imagePath := path.Join(imageDir, imageName)
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			http.Error(w, "Error reading image file", http.StatusInternalServerError)
+			log.Fatalf("Error reading image file: %v", err)
+			return
+		}
+
+		// Encode image bytes to base64
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		result.Data.Img = "data:image/jpeg;base64," + imageBase64 // Adjust according to your image type
+
 		results = append(results, result)
 	}
 
