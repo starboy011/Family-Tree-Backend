@@ -22,7 +22,7 @@ func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 	imageDir := "images"
-	defaultImage := "248.jpg"
+	defaultImage := "Default.jpg"
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)

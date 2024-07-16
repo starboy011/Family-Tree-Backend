@@ -26,7 +26,7 @@ type NameResult struct {
 // GetAllName fetches ID, Name, and Image data and returns as JSON
 func GetAllName(w http.ResponseWriter, r *http.Request) {
 	imageDir := "images"
-	defaultImage := "248.jpg" // Adjust according to your actual image file name and extension
+	defaultImage := "Default.jpg" // Adjust according to your actual image file name and extension
 
 	// Open connection to the database
 	db, err := db.InitDb(w, r)
