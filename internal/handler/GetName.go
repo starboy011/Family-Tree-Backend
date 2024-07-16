@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"path"
 
 	_ "github.com/lib/pq"
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
@@ -15,11 +18,14 @@ type NameResult struct {
 	Generation int `json:"generation"`
 	Data       struct {
 		Name string `json:"name"`
+		Img  string `json:"img"`
 	} `json:"data"`
 }
 
-// GetAllName fetches ID and Name columns from the mulvansham table and returns as JSON
+// GetAllName fetches ID, Name, and Image data and returns as JSON
 func GetAllName(w http.ResponseWriter, r *http.Request) {
+	imageDir := "images"
+	imageName := "248.jpeg" // Adjust according to your actual image file name and extension
 
 	// Open connection to the database
 	db, err := db.InitDb(w, r)
@@ -31,7 +37,7 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	// Prepare query statement
-	query := `SELECT "ID", "Name","Generation" FROM mulvansham WHERE "Relationship" = 1`
+	query := `SELECT "ID", "Name", "Generation" FROM mulvansham WHERE "Relationship" = 1`
 
 	// Execute query
 	rows, err := db.Query(query)
@@ -53,6 +59,20 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error scanning row: %v", err)
 			return
 		}
+
+		// Read image file as bytes
+		imagePath := path.Join(imageDir, imageName)
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			http.Error(w, "Error reading image file", http.StatusInternalServerError)
+			log.Fatalf("Error reading image file: %v", err)
+			return
+		}
+
+		// Encode image bytes to base64
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		result.Data.Img = "data:image/jpeg;base64," + imageBase64 // Adjust according to your image type
+
 		results = append(results, result)
 	}
 
@@ -71,8 +91,10 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set Content-Type header and write JSON response
+	// Set Content-Type header for JSON response
 	w.Header().Set("Content-Type", "application/json")
+
+	// Write JSON response
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
