@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
 )
@@ -21,7 +22,7 @@ func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 	imageDir := "images"
-	imageName := "248.jpeg"
+	defaultImage := "248.jpg"
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
@@ -53,7 +54,18 @@ func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error scanning row: %v", err)
 			return
 		}
+
+		// Convert ID to string and set imageName
+		idStr := strconv.Itoa(result.ID)
+		imageName := idStr + ".jpg"
 		imagePath := path.Join(imageDir, imageName)
+
+		// Check if the image file exists
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			// Use default image if the image file does not exist
+			imagePath = path.Join(imageDir, defaultImage)
+		}
+
 		imageBytes, err := os.ReadFile(imagePath)
 		if err != nil {
 			http.Error(w, "Error reading image file", http.StatusInternalServerError)
@@ -63,7 +75,7 @@ func GetKeyContactName(w http.ResponseWriter, r *http.Request) {
 
 		// Encode image bytes to base64
 		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
-		result.Data.Img = "data:image/jpeg;base64," + imageBase64 // Adjust according to your image type
+		result.Data.Img = "data:image/jpg;base64," + imageBase64 // Adjust according to your image type
 
 		results = append(results, result)
 	}
