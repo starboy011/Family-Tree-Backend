@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"sort"
 	"strconv"
 
@@ -12,6 +15,8 @@ import (
 )
 
 func GetListFromGeneration(w http.ResponseWriter, r *http.Request) {
+	imageDir := "images"
+	defaultImage := "248.jpg"
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
@@ -50,6 +55,27 @@ func GetListFromGeneration(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error scanning row: %v", err)
 			return
 		}
+		idStr := strconv.Itoa(result.ID)
+		imageName := idStr + ".jpg"
+		imagePath := path.Join(imageDir, imageName)
+
+		// Check if the image file exists
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			// Use default image if the image file does not exist
+			imagePath = path.Join(imageDir, defaultImage)
+		}
+
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			http.Error(w, "Error reading image file", http.StatusInternalServerError)
+			log.Fatalf("Error reading image file: %v", err)
+			return
+		}
+
+		// Encode image bytes to base64
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		result.Data.Img = "data:image/jpg;base64," + imageBase64 // Adjust according to your image type
+
 		results = append(results, result)
 	}
 

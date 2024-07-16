@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 
 	_ "github.com/lib/pq"
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
@@ -25,7 +26,7 @@ type NameResult struct {
 // GetAllName fetches ID, Name, and Image data and returns as JSON
 func GetAllName(w http.ResponseWriter, r *http.Request) {
 	imageDir := "images"
-	imageName := "248.jpeg" // Adjust according to your actual image file name and extension
+	defaultImage := "248.jpg" // Adjust according to your actual image file name and extension
 
 	// Open connection to the database
 	db, err := db.InitDb(w, r)
@@ -61,7 +62,16 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Read image file as bytes
+		idStr := strconv.Itoa(result.ID)
+		imageName := idStr + ".jpg"
 		imagePath := path.Join(imageDir, imageName)
+
+		// Check if the image file exists
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			// Use default image if the image file does not exist
+			imagePath = path.Join(imageDir, defaultImage)
+		}
+
 		imageBytes, err := os.ReadFile(imagePath)
 		if err != nil {
 			http.Error(w, "Error reading image file", http.StatusInternalServerError)
@@ -71,7 +81,7 @@ func GetAllName(w http.ResponseWriter, r *http.Request) {
 
 		// Encode image bytes to base64
 		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
-		result.Data.Img = "data:image/jpeg;base64," + imageBase64 // Adjust according to your image type
+		result.Data.Img = "data:image/jpg;base64," + imageBase64 // Adjust according to your image type
 
 		results = append(results, result)
 	}
