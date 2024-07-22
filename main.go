@@ -20,6 +20,7 @@ func main() {
 	r.HandleFunc("/tree/{id}", handler.GetTreeDataFromId).Methods("GET")
 	r.HandleFunc("/generation/{id}", handler.GetListFromGeneration).Methods("GET")
 	r.HandleFunc("/relationship/{firstname}/{secondname}", handler.GetRelationshipFromName).Methods("GET")
+	r.HandleFunc("/fcm/{token}", handler.PushFcmToken).Methods("GET")
 	// Start HTTP server on port 8080
 	fmt.Println("Starting server on port 8080...")
 	log.Fatal(http.ListenAndServe(":8080", r))
