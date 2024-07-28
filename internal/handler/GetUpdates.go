@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -19,23 +18,22 @@ type Updates struct {
 func GetUpdates(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	currentTime := vars["currenttime"]
-	fmt.Println(currentTime)
 
 	// Parse the currentTime to time.Time
 	currentDate, err := time.Parse("2006-01-02", currentTime)
 	if err != nil {
 		http.Error(w, "Invalid date format", http.StatusBadRequest)
-		log.Fatalf("Invalid date format: %v", err)
+		log.Printf("Invalid date format: %v", err)
 		return
 	}
-
+	currentDate = currentDate.AddDate(0, 0, +1)
 	// Calculate the date one week before the currentDate
 	oneWeekBefore := currentDate.AddDate(0, 0, -7)
 
 	db, err := db.InitDb(w, r)
 	if err != nil {
 		http.Error(w, "Error in connecting to db", http.StatusInternalServerError)
-		log.Fatalf("Error connecting to db: %v", err)
+		log.Printf("Error connecting to db: %v", err)
 		return
 	}
 	defer db.Close()
@@ -46,7 +44,7 @@ func GetUpdates(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, oneWeekBefore, currentDate)
 	if err != nil {
 		http.Error(w, "Error executing query", http.StatusInternalServerError)
-		log.Fatalf("Error executing query: %v", err)
+		log.Printf("Error executing query: %v", err)
 		return
 	}
 	defer rows.Close()
@@ -59,7 +57,7 @@ func GetUpdates(w http.ResponseWriter, r *http.Request) {
 
 		if err := rows.Scan(&result.Message, &timestamp); err != nil {
 			http.Error(w, "Error scanning row", http.StatusInternalServerError)
-			log.Fatalf("Error scanning row: %v", err)
+			log.Printf("Error scanning row: %v", err)
 			return
 		}
 
@@ -71,15 +69,16 @@ func GetUpdates(w http.ResponseWriter, r *http.Request) {
 	// Check for errors during row iteration
 	if err := rows.Err(); err != nil {
 		http.Error(w, "Error iterating through rows", http.StatusInternalServerError)
-		log.Fatalf("Error iterating through rows: %v", err)
+		log.Printf("Error iterating through rows: %v", err)
 		return
 	}
+
 	if len(results) == 0 {
 		noUpdatesMessage := map[string]string{"message": "No updates"}
 		jsonData, err := json.Marshal(noUpdatesMessage)
 		if err != nil {
 			http.Error(w, "Error marshalling JSON", http.StatusInternalServerError)
-			log.Fatalf("Error marshalling JSON: %v", err)
+			log.Printf("Error marshalling JSON: %v", err)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -87,11 +86,12 @@ func GetUpdates(w http.ResponseWriter, r *http.Request) {
 		w.Write(jsonData)
 		return
 	}
+
 	// Convert results slice to JSON
 	jsonData, err := json.Marshal(results)
 	if err != nil {
 		http.Error(w, "Error marshalling JSON", http.StatusInternalServerError)
-		log.Fatalf("Error marshalling JSON: %v", err)
+		log.Printf("Error marshalling JSON: %v", err)
 		return
 	}
 
