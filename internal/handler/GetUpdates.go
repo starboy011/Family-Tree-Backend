@@ -74,7 +74,7 @@ func GetUpdates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(results) == 0 {
-		noUpdatesMessage := map[string]string{"message": "No updates"}
+		noUpdatesMessage := []map[string]string{{"Message": "No updates"}}
 		jsonData, err := json.Marshal(noUpdatesMessage)
 		if err != nil {
 			http.Error(w, "Error marshalling JSON", http.StatusInternalServerError)
