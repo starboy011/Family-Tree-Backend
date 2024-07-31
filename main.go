@@ -23,6 +23,7 @@ func main() {
 	r.HandleFunc("/fcm/{token}", handler.PushFcmToken).Methods("GET")
 	r.HandleFunc("/imageGallery", handler.GetImageGallery).Methods("GET")
 	r.HandleFunc("/updates/{currenttime}", handler.GetUpdates).Methods("GET")
+	r.HandleFunc("/sendNotification/{message}", handler.SendNotification).Methods("GET")
 	// Start HTTP server on port 8080
 	fmt.Println("Starting server on port 8080...")
 	log.Fatal(http.ListenAndServe(":8080", r))
