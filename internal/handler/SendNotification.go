@@ -31,7 +31,6 @@ func SendNotification(w http.ResponseWriter, r *http.Request) {
 	}
 	tokens := util.GetFcmToken(db)
 	for _, token := range tokens.Tokens {
-		fmt.Println(token)
 		isNotificationSent := util.SendNotificationViaFirebase(token, title, message)
 		if !isNotificationSent {
 			http.Error(w, "Error while sending notification via firebase", http.StatusInternalServerError)
