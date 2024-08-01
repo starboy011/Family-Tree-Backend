@@ -33,7 +33,7 @@ func getAuthToken() (string, error) {
 	ctx := context.Background()
 
 	// Replace with the path to your service account key file
-	credsFile := "internal/util/mulvansham-186e2-firebase-adminsdk-7rbje-9fa98f8714.json"
+	credsFile := "internal/util/mulvansham-186e2-firebase-adminsdk-7rbje-3822aa13cf.json"
 
 	// Read the service account key file
 	credsData, err := ioutil.ReadFile(credsFile)
