@@ -12,6 +12,7 @@ import (
 
 func SendNotification(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	title := vars["title"]
 	message := vars["message"]
 
 	db, err := db.InitDb(w, r)
@@ -28,12 +29,16 @@ func SendNotification(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error while inserting: %v", err)
 		return
 	}
-	// isNotificationSent := util.SendNotificationViaFirebase(message)
-	// if !isNotificationSent {
-	// 	http.Error(w, "Error while sending notification via firebase", http.StatusInternalServerError)
-	// 	log.Printf("Error while sending notification via firebase: %v", err)
-	// 	return
-	// }
+	tokens := util.GetFcmToken(db)
+	for _, token := range tokens.Tokens {
+		fmt.Println(token)
+		isNotificationSent := util.SendNotificationViaFirebase(token, title, message)
+		if !isNotificationSent {
+			http.Error(w, "Error while sending notification via firebase", http.StatusInternalServerError)
+			log.Printf("Error while sending notification via firebase: %v", err)
+			return
+		}
+	}
 	// Send a success response
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Notification sent successfully")
