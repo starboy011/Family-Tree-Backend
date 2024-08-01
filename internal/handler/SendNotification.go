@@ -28,12 +28,12 @@ func SendNotification(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error while inserting: %v", err)
 		return
 	}
-	isNotificationSent := util.SendNotificationViaFirebase(message)
-	if !isNotificationSent {
-		http.Error(w, "Error while sending notification via firebase", http.StatusInternalServerError)
-		log.Printf("Error while sending notification via firebase: %v", err)
-		return
-	}
+	// isNotificationSent := util.SendNotificationViaFirebase(message)
+	// if !isNotificationSent {
+	// 	http.Error(w, "Error while sending notification via firebase", http.StatusInternalServerError)
+	// 	log.Printf("Error while sending notification via firebase: %v", err)
+	// 	return
+	// }
 	// Send a success response
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Notification sent successfully")
