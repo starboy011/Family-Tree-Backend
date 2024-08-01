@@ -33,18 +33,18 @@ func getAuthToken() (string, error) {
 	ctx := context.Background()
 
 	// Replace with the path to your service account key file
-	credsFile := "internal/util/mulvansham-186e2-firebase-adminsdk-7rbje-a2cd0734ad.json"
+	credsFile := "internal/util/mulvansham-186e2-firebase-adminsdk-7rbje-9fa98f8714.json"
 
 	// Read the service account key file
 	credsData, err := ioutil.ReadFile(credsFile)
 	if err != nil {
-		log.Fatalf("Failed to read service account key file: %v", err)
+		return "", fmt.Errorf("failed to read service account key file: %v", err)
 	}
 
-	// Load the service account key file
+	// Parse the JSON key file into the appropriate credentials object
 	creds, err := google.CredentialsFromJSON(ctx, credsData, "https://www.googleapis.com/auth/firebase.messaging")
 	if err != nil {
-		log.Fatalf("Failed to create credentials from JSON: %v", err)
+		return "", fmt.Errorf("failed to create credentials from JSON: %v", err)
 	}
 
 	// Create a token source from the credentials
@@ -53,7 +53,7 @@ func getAuthToken() (string, error) {
 	// Get the token
 	token, err := tokenSource.Token()
 	if err != nil {
-		log.Fatalf("Failed to get token: %v", err)
+		return "", fmt.Errorf("failed to get token: %v", err)
 	}
 
 	return token.AccessToken, nil
@@ -96,7 +96,6 @@ func SendNotificationViaFirebase(token string, title string, body string) bool {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMessage))
 	if err != nil {
 		log.Printf("Error creating request: %v", err)
-		return false
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -107,13 +106,11 @@ func SendNotificationViaFirebase(token string, title string, body string) bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error sending request: %v", err)
-		return false
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Received non-OK response code: %d", resp.StatusCode)
-		return false
 	}
 	return true
 }
