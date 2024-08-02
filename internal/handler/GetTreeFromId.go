@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -33,6 +36,7 @@ func buildTreeFromId(current TreeResult, nodeMap map[int][]TreeResult) TreeNode 
 	treeNode := TreeNode{
 		ID:    current.ID,
 		Label: current.Name,
+		Img:   current.Img,
 	}
 	for _, child := range nodeMap[current.ID] {
 		treeNode.Children = append(treeNode.Children, buildTreeFromId(child, nodeMap))
@@ -52,6 +56,7 @@ func ExtractSubtreeWithPath(root TreeNode, id int) *TreeNode {
 			return &TreeNode{
 				ID:       root.ID,
 				Label:    root.Label,
+				Img:      root.Img,
 				Children: []TreeNode{*subtree},
 			}
 		}
@@ -60,6 +65,8 @@ func ExtractSubtreeWithPath(root TreeNode, id int) *TreeNode {
 }
 
 func GetTreeDataFromId(w http.ResponseWriter, r *http.Request) {
+	imageDir := "images"
+	defaultImage := "Default.jpg"
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
@@ -97,6 +104,27 @@ func GetTreeDataFromId(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error scanning row: %v", err)
 			return
 		}
+		idStr := strconv.Itoa(result.ID)
+		imageName := idStr + ".jpg"
+		imagePath := path.Join(imageDir, imageName)
+
+		// Check if the image file exists
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			// Use default image if the image file does not exist
+			imagePath = path.Join(imageDir, defaultImage)
+		}
+
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			http.Error(w, "Error reading image file", http.StatusInternalServerError)
+			log.Fatalf("Error reading image file: %v", err)
+			return
+		}
+
+		// Encode image bytes to base64
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		result.Img = "data:image/jpg;base64," + imageBase64 // Adjust according to your image type
+
 		results = append(results, result)
 	}
 	if err := rows.Err(); err != nil {
