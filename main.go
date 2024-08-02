@@ -14,6 +14,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Define HTTP routes
+	r.HandleFunc("/test", handler.Test).Methods("GET")
 	r.HandleFunc("/names", handler.GetAllName).Methods("GET")
 	r.HandleFunc("/keyNames", handler.GetKeyContactName).Methods("GET")
 	r.HandleFunc("/tree", handler.GetFamilyTreeData).Methods("GET")
