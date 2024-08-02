@@ -20,6 +20,7 @@ func main() {
 	r.HandleFunc("/tree/{id}", handler.GetTreeDataFromId).Methods("GET")
 	r.HandleFunc("/generation/{id}", handler.GetListFromGeneration).Methods("GET")
 	r.HandleFunc("/relationship/{firstname}/{secondname}", handler.GetRelationshipFromName).Methods("GET")
+	r.HandleFunc("/search/{name}", handler.GetName).Methods("GET")
 	r.HandleFunc("/fcm/{token}", handler.PushFcmToken).Methods("GET")
 	r.HandleFunc("/imageGallery", handler.GetImageGallery).Methods("GET")
 	r.HandleFunc("/updates/{currenttime}", handler.GetUpdates).Methods("GET")
