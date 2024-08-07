@@ -83,7 +83,7 @@ func GetTreeDataFromId(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	query := `SELECT "ID", "Name", "ParentID" FROM mulvansham WHERE "Relationship" = 1`
+	query := `SELECT "ID", "Name", "ParentID" FROM mulvansham WHERE "Relationship" IN (1, 2)`
 
 	// Execute query
 	rows, err := db.Query(query)
