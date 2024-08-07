@@ -26,7 +26,7 @@ func GetName(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	query := `SELECT "ID", "Name", "Generation" FROM mulvansham WHERE "Name" LIKE '%' || $1 || '%'`
+	query := `SELECT "ID", "Name", "Generation" FROM mulvansham WHERE "Name" LIKE '%' || $1 || '%' AND "Relationship" <> 3`
 
 	// Execute query with the name parameter
 	rows, err := db.Query(query, Name)
