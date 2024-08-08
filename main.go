@@ -27,6 +27,6 @@ func main() {
 	r.HandleFunc("/updates/{currenttime}", handler.GetUpdates).Methods("GET")
 	r.HandleFunc("/sendNotification/{title}/{message}", handler.SendNotification).Methods("GET")
 	// Start HTTP server on port 8080
-	fmt.Println("Starting server on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	fmt.Println("Starting server on port 8085...")
+	log.Fatal(http.ListenAndServe(":8085", r))
 }
