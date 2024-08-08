@@ -24,12 +24,29 @@ func ConvertToTreefromID(nodes []TreeResult) TreeNode {
 	// Recursively build the tree
 	return buildTreeFromId(root, nodeMap)
 }
+func ConvertToTreefromIDs(nodes []TreeResult) TreeNode {
+	nodeMap := make(map[int][]TreeResult)
+	var root TreeResult
+
+	// Create a map of parentID to child nodes and identify the root node
+	for _, node := range nodes {
+		if node.ParentID == 0 {
+			root = node
+		} else {
+			nodeMap[node.ParentID] = append(nodeMap[node.ParentID], node)
+		}
+	}
+
+	// Recursively build the tree
+	return buildTreeFromIds(root, nodeMap)
+}
 
 // buildTree recursively constructs the tree from the node map
 func buildTreeFromId(current TreeResult, nodeMap map[int][]TreeResult) TreeNode {
 	treeNode := TreeNode{
 		ID:    current.ID,
 		Label: current.Name,
+		Img:   current.Img,
 	}
 	for _, child := range nodeMap[current.ID] {
 		treeNode.Children = append(treeNode.Children, buildTreeFromId(child, nodeMap))
@@ -56,6 +73,36 @@ func ExtractSubtreeWithPath(root TreeNode, id int) *TreeNode {
 	return nil
 }
 
+func ExtractSubtreeWithPathOfIDs(root TreeNode, id int) *TreeNode {
+	if root.ID == id {
+		return &root
+	}
+	for _, child := range root.Children {
+		subtree := ExtractSubtreeWithPathOfIDs(child, id)
+		if subtree != nil {
+			// Return the current root with the subtree attached to it
+			return &TreeNode{
+				ID:       root.ID,
+				Label:    root.Label,
+				Img:      root.Img, // Include the Img field in the returned subtree
+				Children: []TreeNode{*subtree},
+			}
+		}
+	}
+	return nil
+}
+
+func buildTreeFromIds(current TreeResult, nodeMap map[int][]TreeResult) TreeNode {
+	treeNode := TreeNode{
+		ID:    current.ID,
+		Label: current.Name,
+		Img:   current.Img,
+	}
+	for _, child := range nodeMap[current.ID] {
+		treeNode.Children = append(treeNode.Children, buildTreeFromId(child, nodeMap))
+	}
+	return treeNode
+}
 func GetTreeDataFromId(w http.ResponseWriter, r *http.Request, id int) interface{} {
 
 	db, err := db.InitDb(w, r)
