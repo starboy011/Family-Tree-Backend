@@ -1,10 +1,15 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/starboy011/Family-Tree-Backend/internal/db"
@@ -35,6 +40,8 @@ func GetIdFromName(w http.ResponseWriter, r *http.Request, name string) int {
 
 // ExtractTreeData retrieves the subtree rooted at a specific ID
 func ExtractTreeData(id int) (*pkg.TreeNode, error) {
+	imageDir := "images"
+	defaultImage := "Default.jpg"
 	db, err := db.InitDb(nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to database: %v", err)
@@ -56,14 +63,34 @@ func ExtractTreeData(id int) (*pkg.TreeNode, error) {
 			return nil, fmt.Errorf("error scanning row: %v", err)
 		}
 
+		// Add image handling logic here
+		idStr := strconv.Itoa(result.ID)
+		imageName := idStr + ".jpg"
+		imagePath := path.Join(imageDir, imageName)
+
+		// Check if the image file exists
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			// Use default image if the image file does not exist
+			imagePath = path.Join(imageDir, defaultImage)
+		}
+
+		imageBytes, err := ioutil.ReadFile(imagePath)
+		if err != nil {
+			return nil, fmt.Errorf("error reading image file: %v", err)
+		}
+
+		// Encode image bytes to base64
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		result.Img = "data:image/jpg;base64," + imageBase64 // Adjust according to your image type
+
 		results = append(results, result)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating through rows: %v", err)
 	}
 
-	tree := pkg.ConvertToTreefromID(results)
-	subtree := pkg.ExtractSubtreeWithPath(tree, id)
+	tree := pkg.ConvertToTreefromIDs(results)
+	subtree := pkg.ExtractSubtreeWithPathOfIDs(tree, id)
 
 	if subtree == nil {
 		return nil, fmt.Errorf("node with ID %d not found", id)

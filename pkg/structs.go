@@ -10,5 +10,6 @@ type TreeResult struct {
 type TreeNode struct {
 	ID       int        `json:"id"`
 	Label    string     `json:"label"`
+	Img      string     `json:"img"`
 	Children []TreeNode `json:"children,omitempty"`
 }
